@@ -33,48 +33,6 @@ app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({
     extended: true
 }));
-// app.options('*', cors());
-// define a route handler for the default home page
-// MongoClient.connect(url, async (error: any, db: any) => {
-//     const dbo = db.db(booksAppDb);
-//     // const myobj = {
-//     //     "id": 75645,
-//     //     "title": "A1",
-//     //     "author": "AAA",
-//     //     "price": 123
-//     // };
-//     // dbo.collection("books").insertOne(myobj, (error:any, response:any) => {
-//     //     if (error) throw error;
-//     //     console.log("1 document inserted");
-//     //     db.close();
-//     // });
-//         const result = await dbo.collection("books").find().toArray();
-// });
-// app.get("/getBooks", (req, res) => {
-//     res.json({
-//         status: "SUCCESS",
-//         booksArray: [
-//             {
-//                 id: 75645,
-//                 title: "A1",
-//                 author: "AAA",
-//                 price: 123
-//             },
-//             {
-//                 id: 12435,
-//                 title: "B1",
-//                 author: "BBB",
-//                 price: 456
-//             },
-//             {
-//                 id: 46578,
-//                 title: "C1",
-//                 author: "CCC",
-//                 price: 789
-//             },
-//         ]
-//     });
-// });
 app.get("/getBooks", (req, res) => {
     // // Using MongoDb
     // MongoClient.connect(url, async (error: any, db: any) => {
@@ -95,34 +53,72 @@ app.get("/getBooks", (req, res) => {
     });
 });
 app.post("/saveBooks", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const books = req.body;
-    const promiseArray = [];
-    books.forEach((book) => {
-        MongoClient.connect(url, (error, db) => __awaiter(void 0, void 0, void 0, function* () {
-            if (book.type === 'deleted') {
-                const dbo = db.db(booksAppDb);
-                promiseArray.push(yield dbo.collection('books').remove({ 'id': book.id }));
+    try {
+        const books = req.body;
+        const promiseArray = [];
+        books.forEach((book) => __awaiter(void 0, void 0, void 0, function* () {
+            book.id = book.id.toString();
+            book.price = Number(book.price);
+            console.log(book);
+            // // Using MongoDb
+            // MongoClient.connect(url, async (error: any, db: any) => {
+            //     if (book.type === 'deleted') {
+            //         const dbo = db.db(booksAppDb);
+            //         promiseArray.push(await dbo.collection('books').remove({ 'id': book.id }));
+            //     } else if (book.type === 'new') {
+            //         const dbo = db.db(booksAppDb);
+            //         book.type = "saved";
+            //         promiseArray.push(await dbo.collection('books').insert(book));
+            //     }
+            // });
+            // // Using MySql
+            // const sqlQuery = `UPDATE sys.books SET title=${book.title},author=${book.author},price=${book.price},type='saved' WHERE id=${book.id}`;
+            // connection.query(sqlQuery, (error: any, result, fields) => {
+            //     if (error) {
+            //         throw error;
+            //     }
+            // });
+            if (book.type === "new") {
+                const sqlQuery = `INSERT INTO sys.books VALUES ('${book.id}','${book.author}',${book.price},'saved')`;
+                promiseArray.push(executeQuery(sqlQuery));
             }
-            else if (book.type === 'new') {
-                const dbo = db.db(booksAppDb);
-                book.type = "saved";
-                promiseArray.push(yield dbo.collection('books').insert(book));
+            else if (book.type === "deleted") {
+                const sqlQuery = `DELETE from sys.books WHERE id='${book.id}'`;
+                promiseArray.push(executeQuery(sqlQuery));
             }
-        }));
-    });
-    const result = yield Promise.all(promiseArray);
-    console.log(result);
-    if (result.empty()) {
-        res.json({
-            status: "SUCCESS"
-        });
+        })); // End For Each
+        const result = yield Promise.all(promiseArray);
+        console.log(result.length);
+        if (result.length === 0) {
+            res.json({
+                status: "FAIL"
+            });
+        }
+        else {
+            res.json({
+                status: "SUCCESS"
+            });
+        }
     }
-    else {
+    catch (error) {
         res.json({
-            status: "FAIL"
+            status: "FAIL",
+            error: error.message
         });
     }
 }));
+function executeQuery(sqlQuery) {
+    return new Promise((resolve, reject) => {
+        connection.query(sqlQuery, (error, result) => {
+            if (error) {
+                reject(error);
+            }
+            else {
+                resolve(result);
+            }
+        });
+    });
+}
 // start the Express server
 app.listen(port, () => {
     // tslint:disable-next-line:no-console

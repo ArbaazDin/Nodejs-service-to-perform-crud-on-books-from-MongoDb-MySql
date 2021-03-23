@@ -19,11 +19,11 @@ jobs:
     steps:
       # Step 1 - Checkout from repository
       - name: checkout-repo
-        uses: action/checkout@master
+        uses: actions/checkout@master
 
       # Step 2 - Setup node js environment
       - name: nodejs-env-setup
-        uses: action/setup-node@v1
+        uses: actions/setup-node@v1
 
       # Step 3 - Install mongodb
       - name: Start MongoDB v${{ matrix.mongodb-version }}

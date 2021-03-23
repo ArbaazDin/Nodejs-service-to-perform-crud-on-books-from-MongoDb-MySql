@@ -29,86 +29,123 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-
+// Fetch Books -------------------------------------------------------------------------------------------------------------------------------------------------------------
 app.get("/getBooks", (req, res) => {
 
     // // Using MongoDb
-    // MongoClient.connect(url, async (error: any, db: any) => {
-    //     const dbo = db.db(booksAppDb);
-    //     const result = await dbo.collection("books").find().toArray();
-    //     db.close();
-    //     res.json({
-    //         status: "SUCCESS",
-    //         booksArray: result
-    //     });
-    // });
-
-    // // Using MySql
-    const sqlQuery = "SELECT * FROM sys.books";
-    connection.query(sqlQuery, (error: any, result, fields) => {
-        if (error) throw error;
-        res.json({ status: "SUCCESS", booksArray: result });
+    MongoClient.connect(url, async (error: any, db: any) => {
+        const dbo = db.db(booksAppDb);
+        const result = await dbo.collection("books").find().toArray();
+        db.close();
+        res.json({
+            status: "SUCCESS",
+            booksArray: result
+        });
     });
 
+    // // Using MySql
+    // const sqlQuery = "SELECT * FROM sys.books";
+    // connection.query(sqlQuery, (error: any, result, fields) => {
+    //     if (error) throw error;
+    //     res.json({ status: "SUCCESS", booksArray: result });
+    // });
+
 });
 
-app.post("/saveBooks", async (req, res) => {
-    try {
-        const books = req.body;
-        const promiseArray: Promise<any>[] = [];
-        books.forEach(async (book: any) => {
+// Save Books -------------------------------------------------------------------------------------------------------------------------------------------------------------
+// app.post("/saveBooks", async (req, res) => {
+//     try {
+//         const books = req.body.books;
+//         const originalBooks = req.body.originalBooks;
 
-            book.id = book.id.toString();
-            book.price = Number(book.price);
-            console.log(book);
+//         // Check if the data on the client is same as data on the database
+//         // This is to avoid concurrency issues
+//         // // Using MongoDb
+//         MongoClient.connect(url, async (error: any, db: any) => {
+//             const dbo = db.db(booksAppDb);
+//             const response = await dbo.collection("books").find().toArray();
+//             if (response !== originalBooks) {
+//                 res.json({
+//                     status: "OLD_DATA_ON_CLIENT"
+//                 });
+//             }
+//         });
 
-            // // Using MongoDb
-            // MongoClient.connect(url, async (error: any, db: any) => {
-            //     if (book.type === 'deleted') {
-            //         const dbo = db.db(booksAppDb);
-            //         promiseArray.push(await dbo.collection('books').remove({ 'id': book.id }));
-            //     } else if (book.type === 'new') {
-            //         const dbo = db.db(booksAppDb);
-            //         book.type = "saved";
-            //         promiseArray.push(await dbo.collection('books').insert(book));
-            //     }
-            // });
+//         const promiseArray: Promise<any>[] = [];
+//         let result: any;
 
-            // // Using MySql
-            // const sqlQuery = `UPDATE sys.books SET title=${book.title},author=${book.author},price=${book.price},type='saved' WHERE id=${book.id}`;
-            // connection.query(sqlQuery, (error: any, result, fields) => {
-            //     if (error) {
-            //         throw error;
-            //     }
-            // });
+//         // Using MongoDb
+//         MongoClient.connect(url, async (error: any, db: any) => {
+//             books.forEach((book: any) => {
 
-            if (book.type === "new") {
-                const sqlQuery = `INSERT INTO sys.books VALUES ('${book.id}','${book.author}',${book.price},'saved')`;
-                promiseArray.push(executeQuery(sqlQuery));
-            } else if (book.type === "deleted") {
-                const sqlQuery = `DELETE from sys.books WHERE id='${book.id}'`;
-                promiseArray.push(executeQuery(sqlQuery));
-            }
-        }); // End For Each
+//                 book.id = book.id.toString();
+//                 book.price = Number(book.price);
 
-        const result: any = await Promise.all(promiseArray);
-        console.log(result.length);
-        if (result.length === 0) {
-            res.json({
-                status: "FAIL"
-            })
-        } else {
-            res.json({
-                status: "SUCCESS"
-            });
-        }
-    } catch (error) {
-        res.json({
-            status: "FAIL",
-            error: error.message
-        });
-    }
-});
+//                 if (book.type === 'deleted') {
+//                     const dbo = db.db(booksAppDb);
+//                     promiseArray.push(dbo.collection('books').deleteOne({ 'id': book.id }));
+//                 } else if (book.type === 'new') {
+//                     const dbo = db.db(booksAppDb);
+//                     book.type = "saved";
+//                     promiseArray.push(dbo.collection('books').insert(book));
+//                 }
+//             }); // End For Each
+//             console.log("Inside ----------------", promiseArray);
+//             console.log(await Promise.all(promiseArray));
+//         });
+
+//         // // Using MySql
+//         // const sqlQuery = `UPDATE sys.books SET title=${book.title},author=${book.author},price=${book.price},type='saved' WHERE id=${book.id}`;
+//         // connection.query(sqlQuery, (error: any, result, fields) => {
+//         //     if (error) {
+//         //         throw error;
+//         //     }
+//         // });
+
+//         // if (book.type === "new") {
+//         //     const sqlQuery = `INSERT INTO sys.books VALUES ('${book.id}','${book.title}','${book.author}',${book.price},'saved')`;
+//         //     promiseArray.push(executeQuery(sqlQuery));
+//         // } else if (book.type === "deleted") {
+//         //     const sqlQuery = `DELETE from sys.books WHERE id='${book.id}'`;
+//         //     promiseArray.push(executeQuery(sqlQuery));
+//         // }
+
+
+
+
+//         // // Using MongoDB
+//         // result = await Promise.all(promiseArray);
+//         console.log(result.length);
+//         if (!result.empty) {
+//             res.json({
+//                 status: "FAIL"
+//             })
+//         } else {
+//             res.json({
+//                 status: "SUCCESS"
+//             });
+//         }
+
+//         // // Using MySql
+//         // const result: any = await Promise.all(promiseArray);
+//         // console.log(result.length);
+//         // if (result.length === 0) {
+//         //     res.json({
+//         //         status: "FAIL"
+//         //     })
+//         // } else {
+//         //     res.json({
+//         //         status: "SUCCESS"
+//         //     });
+//         // }
+
+//     } catch (error) {
+//         res.json({
+//             status: "FAIL",
+//             error: error.message
+//         });
+//     }
+// });
 
 function executeQuery(sqlQuery: string): Promise<any> {
     return new Promise((resolve, reject) => {

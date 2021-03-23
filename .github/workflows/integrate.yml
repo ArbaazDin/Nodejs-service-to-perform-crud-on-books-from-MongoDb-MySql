@@ -1,0 +1,30 @@
+# name of the workflow
+name: books-ci 
+
+# The action will trigger on push code to the main branch
+on:
+  push:
+    branches: [main]
+
+# Jobs in our workflow
+job: 
+  # name_of_job
+  integrate: 
+    #  machine/container
+    runs-on: ubuntu-latest # docker image
+    steps: 
+      # Step 1 - Checkout from repository 
+      - name: checkout-repo
+        uses: action/checkout@master
+     
+      # Step 2 - Setup node js environment
+      - name: nodejs-env-setup
+        uses: action/setup-node@v1
+
+      # Step 3 - Install mongodb
+      - name: Start MongoDB v${{ matrix.mongodb-version }}
+        uses: supercharge/mongodb-github-action@1.2.0
+
+      # Step 4 - Install npm dependencies from package.json
+      - name: npm-dependencies-installation
+        uses: npm i 

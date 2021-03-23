@@ -31,4 +31,4 @@ jobs:
 
       # Step 4 - Install npm dependencies from package.json
       - name: npm-dependencies-installation
-        uses: npm i
+        uses: npm install

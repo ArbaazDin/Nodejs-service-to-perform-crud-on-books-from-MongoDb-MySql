@@ -8,7 +8,6 @@ on:
 
 # Jobs in our workflow
 job: 
-  # name_of_job
   integrate: 
     #  machine/container
     runs-on: ubuntu-latest # docker image

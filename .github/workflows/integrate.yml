@@ -1,21 +1,26 @@
 # name of the workflow
-name: books-ci 
+name: books-ci
 
-# The action will trigger on push code to the main branch
 on:
   push:
-    branches: [main]
+    branches: [ main ]
+
+# on:
+#   push:
+#     branches: [main]
+#   pull_request:
+#     branches: [main]
 
 # Jobs in our workflow
-job: 
-  integrate: 
+jobs:
+  integrate:
     #  machine/container
     runs-on: ubuntu-latest # docker image
-    steps: 
-      # Step 1 - Checkout from repository 
+    steps:
+      # Step 1 - Checkout from repository
       - name: checkout-repo
         uses: action/checkout@master
-     
+
       # Step 2 - Setup node js environment
       - name: nodejs-env-setup
         uses: action/setup-node@v1
@@ -26,4 +31,4 @@ job:
 
       # Step 4 - Install npm dependencies from package.json
       - name: npm-dependencies-installation
-        uses: npm i 
+        uses: npm i
